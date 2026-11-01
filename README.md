@@ -70,3 +70,10 @@ The dataset comes from a single pharmacy, and models use previously observed sal
 ## Author
 
 [Youssef Douieb El Attafi](https://github.com/youssefattafi)
+
+
+## Advanced modeling experiment: walk-forward validation
+
+Run `python backtest.py` after installing the requirements and adding `data/salesweekly.csv`. This separate script evaluates a previous-week baseline, Ridge, Random Forest, and Histogram Gradient Boosting with **four expanding-window folds**, each validating 20 subsequent weeks. It reserves the latest 58 weeks from this experiment, avoiding use of the final holdout for model selection. Results are written to `outputs/walk_forward_results.csv`.
+
+**Important:** This is one-week-ahead backtesting using actual past observations at each prediction point, not a recursive 4–12-week forecast. Results have not yet been executed and verified; run the script before citing any new scores. The original deployed dashboard and its existing results remain unchanged.
