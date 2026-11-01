@@ -1,8 +1,10 @@
 # Pharmaceutical Sales Forecasting & Demand Analytics
 
+🚀 **[Try the live Streamlit dashboard](https://pharma-sales-forecasting-ai.streamlit.app/)**
+
 A Python data science portfolio project predicting **weekly pharmacy sales quantities across eight drug categories** using lagged sales features, seasonal features, and regression models.
 
-> **Status:** Forecasting code, analysis notebook, and Streamlit app are published. The original dataset and saved prediction outputs are not yet committed. Follow the setup instructions below before running the dashboard.
+> **Status:** Live dashboard deployed. Weekly sales dataset and saved model comparison and holdout predictions are included in this repository.
 
 ## Dataset
 
