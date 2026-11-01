@@ -1,0 +1,1 @@
+Download the Pharma Sales Data dataset from https://www.kaggle.com/datasets/milanzdravkovic/pharma-sales-data and place salesweekly.csv in this directory. Attribution: Milan Zdravković. License: CC BY-NC 4.0; follow original noncommercial terms. The full local project package is available separately from the author.
