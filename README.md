@@ -1,79 +1,136 @@
-# Pharmaceutical Sales Forecasting & Demand Analytics
+# Pharmaceutical Sales Forecasting & AI Demand Prediction
 
-🚀 **[Try the live Streamlit dashboard](https://pharma-sales-forecasting-ai.streamlit.app/)**
+**End-to-end Data Science + AI Engineering portfolio project** — explore weekly pharmaceutical sales, evaluate forecasting models, serve a trained Random Forest through FastAPI, and generate historical one-week-ahead forecasts in a deployed Streamlit dashboard.
 
-A Python data science portfolio project predicting **weekly pharmacy sales quantities across eight drug categories** using lagged sales features, seasonal features, and regression models.
+[![Live Dashboard](https://img.shields.io/badge/Live-Streamlit%20Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://pharma-sales-forecasting-ai.streamlit.app/)
+[![API Docs](https://img.shields.io/badge/API-FastAPI%20Docs-009688?logo=fastapi&logoColor=white)](https://pharma-forecast-api-vews.onrender.com/docs)
+[![GitHub Source](https://img.shields.io/badge/Code-GitHub-181717?logo=github)](https://github.com/youssefattafi/Pharmaceutical-Sales-Forecasting)
 
-> **Status:** Live dashboard deployed. Weekly sales dataset and saved model comparison and holdout predictions are included in this repository.
+### 🚀 Quick links for recruiters
 
-## Dataset
+| Explore | Link |
+|---|---|
+| **Interactive AI forecasting dashboard** | [Launch Streamlit app](https://pharma-sales-forecasting-ai.streamlit.app/) |
+| **Live prediction API documentation** | [Open FastAPI Swagger UI](https://pharma-forecast-api-vews.onrender.com/docs) |
+| **API health endpoint** | [Check model service](https://pharma-forecast-api-vews.onrender.com/health) |
+| **Data science notebook** | [Explore analysis.ipynb](analysis.ipynb) |
+| **Training and evaluation** | [train.py](train.py) · [backtest.py](backtest.py) |
+| **Model export** | [save_model.py](save_model.py) |
+| **API implementation** | [api.py](api.py) |
+| **Streamlit implementation** | [app.py](app.py) |
+| **Model comparison CSV** | [outputs/model_comparison.csv](outputs/model_comparison.csv) |
 
-**Source:** [Pharma Sales Data — Milan Zdravković (Kaggle)](https://www.kaggle.com/datasets/milanzdravkovic/pharma-sales-data). Historical pharmaceutical sales quantity data, 2014–2019. Attribution and original **CC BY-NC 4.0** noncommercial licensing apply. This project studies **sales quantities**, not revenue.
+> **Demo scope:** Data ends in 2019. The API predicts the week of **October 20, 2019**, using the latest 12 observed historical weeks. These are experimental historical forecasts, **not current pharmaceutical demand**, medical advice, or validated inventory recommendations. Render's free service may take time to wake up.
 
-- 302 weekly observations in the supplied dataset; lag construction leaves 290 modeled rows.
-- Eight categories: M01AB, M01AE, N02BA, N02BE, N05B, N05C, R03 and R06.
-- No marketing spend or competitor variables; this does **not** measure marketing effectiveness.
+## What this project demonstrates
 
-## Approach
+**Data Science:** Pandas data preparation, past-only lag/rolling features, time-aware train/test splitting, regression baselines, Random Forest and Ridge, error metrics, chronological holdout testing, and a separate walk-forward validation experiment.
 
-1. Load and sort weekly sales data.
-2. Engineer past-only lags at 1, 2, 4, 8, and 12 weeks, four-week trailing means, and cyclical calendar features.
-3. Use the earlier 80% of modeled weeks for training and the most recent 20% for testing.
-4. Compare previous-week and four-week baselines against **Ridge Regression** and **Random Forest**.
-5. Evaluate MAE, RMSE, sMAPE, and R² across all eight categories. No shuffled or random test split.
+**AI / ML Engineering:** Reproducible model export with metadata, model versioning, FastAPI request validation and inference, deployed REST API on Render, Streamlit frontend on Streamlit Community Cloud, and HTTP-based integration between frontend and backend.
 
-## Previously executed holdout results
+## Architecture
 
-These are **macro averages across eight categories** produced from the supplied local dataset, not GitHub CI results:
+```text
+Historical weekly sales (data/salesweekly.csv)
+                  |
+         Feature engineering
+                  |
+       Train and evaluate models
+         |                  |
+    Evaluation CSVs      Saved Random Forest + metadata
+         |                  |
+         |               FastAPI /predict
+         |                  |   hosted on Render
+         +-------> Streamlit dashboard
+                    hosted on Streamlit Cloud
+```
 
-| Model | MAE | RMSE | sMAPE | R² |
+## Working demo result
+
+The deployed dashboard successfully displayed a forecast for **2019-10-20**, model **v1.0**, with predicted weekly quantity **197.81 for N02BE** and a comparison chart for eight drug categories. The prediction was generated through the deployed API.
+
+The API accepts at least 12 weeks of dated historical quantities, with records shaped as `{"date": "YYYY-MM-DD", "quantities": {"M01AB": 1.0, "...": 0.0}}` and returns `forecast_week`, `model_version`, and `predicted_weekly_quantities`.
+
+## Dataset and methodology
+
+**Source:** [Pharma Sales Data — Milan Zdravković (Kaggle)](https://www.kaggle.com/datasets/milanzdravkovic/pharma-sales-data). Original **CC BY-NC 4.0** noncommercial licensing and attribution apply. Historical sales **quantities**, not revenue; no marketing or competitor variables.
+
+- **302 weekly observations** in the supplied dataset; **290 modeled rows** after lag construction.
+- Eight categories: M01AB, M01AE, N02BA, N02BE, N05B, N05C, R03, R06.
+- Lag features from 1, 2, 4, 8, and 12 previous weeks, trailing averages, and cyclical calendar features.
+- Chronological 80% train / 20% test split for the original experiment; no random shuffle.
+
+### Original chronological holdout results
+
+Macro averages across eight categories, from the previously executed local dataset:
+
+| Model | MAE ↓ | RMSE ↓ | sMAPE ↓ | R² ↑ |
 |---|---:|---:|---:|---:|
 | Previous-week baseline | 13.31 | 17.17 | 33.39% | -0.24 |
 | Four-week seasonal baseline | 17.14 | 22.67 | 38.66% | -0.62 |
 | Ridge Regression | 12.85 | 16.48 | 31.76% | -0.07 |
 | **Random Forest** | **12.13** | **16.33** | **29.90%** | **-0.06** |
 
-Random Forest achieved the lowest mean MAE and RMSE here, although negative average R² indicates limited predictive strength. Compare performance against simple baselines for each drug category before choosing a model.
+Random Forest has the lowest average MAE/RMSE in this experiment, **but the negative average R² signals limited predictive strength**. These figures are for the original chronological holdout, not the later walk-forward experiment.
 
-## Setup
+### Separate walk-forward development experiment
 
-1. Download the original data at [Kaggle](https://www.kaggle.com/datasets/milanzdravkovic/pharma-sales-data).
-2. Put **`salesweekly.csv`** in **`data/`**.
-3. In a Python environment run:
+A four-fold expanding-window development evaluation was executed separately, with the latest 58 weeks reserved from that experiment. Its reported **development** averages (not final holdout scores):
+
+| Model | MAE ↓ | RMSE ↓ | sMAPE ↓ |
+|---|---:|---:|---:|
+| Random Forest | **11.575** | **14.623** | **33.330%** |
+| Previous-week baseline | 11.908 | 14.811 | 40.430% |
+| Histogram Gradient Boosting | 12.687 | 15.569 | 35.254% |
+| Ridge | 13.431 | 16.595 | 38.774% |
+
+See [backtest.py](backtest.py) for the implementation. Do not compare these numbers directly with the original holdout scores: the evaluation windows differ.
+
+## Run locally
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/youssefattafi/Pharmaceutical-Sales-Forecasting.git
+cd Pharmaceutical-Sales-Forecasting
+python -m pip install -r requirements.txt
+python -m pip install fastapi uvicorn joblib
 python train.py
-streamlit run app.py
+python save_model.py
 ```
 
-Training generates `outputs/model_comparison.csv` and `outputs/n02be_holdout_predictions.csv`. The interactive dashboard displays weekly history, category-level model comparisons, and holdout predictions for N02BE.
+Start the API in one terminal:
 
-## Project structure
-
-```text
-README.md
-requirements.txt
-train.py
-app.py
-analysis.ipynb
-data/
-  README.md
-  salesweekly.csv  # download separately; not yet committed
-outputs/           # generated by train.py
+```bash
+uvicorn api:app --reload
 ```
 
-## Limitations
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to inspect/test endpoints. In another terminal, launch the dashboard:
 
-The dataset comes from a single pharmacy, and models use previously observed sales to evaluate **one-step-ahead** historical predictions. Multi-week forecasting requires an additional modeling strategy. This is an educational project, not medical guidance, causal marketing analysis, or production inventory advice.
+```bash
+PHARMA_API_URL=http://127.0.0.1:8000 streamlit run app.py
+```
 
-## Author
+The dashboard also works without an API URL, but its interactive forecast button requires the API service. For the deployed Streamlit app, configure `PHARMA_API_URL` as an environment variable pointing to the Render base URL (no trailing `/predict`).
 
-[Youssef Douieb El Attafi](https://github.com/youssefattafi)
+## Repository map
 
+| Path | Purpose |
+|---|---|
+| [analysis.ipynb](analysis.ipynb) | Data science exploration |
+| [train.py](train.py) | Original chronological model training and holdout evaluation |
+| [backtest.py](backtest.py) | Separate walk-forward experiment |
+| [save_model.py](save_model.py) | Export trained Random Forest and model metadata |
+| [api.py](api.py) | FastAPI health and prediction endpoints |
+| [app.py](app.py) | Interactive Streamlit dashboard |
+| [data/salesweekly.csv](data/salesweekly.csv) | Historical weekly quantities |
+| [outputs/](outputs/) | Saved evaluation results |
 
-## Advanced modeling experiment: walk-forward validation
+## Limitations and responsible use
 
-Run `python backtest.py` after installing the requirements and adding `data/salesweekly.csv`. This separate script evaluates a previous-week baseline, Ridge, Random Forest, and Histogram Gradient Boosting with **four expanding-window folds**, each validating 20 subsequent weeks. It reserves the latest 58 weeks from this experiment, avoiding use of the final holdout for model selection. Results are written to `outputs/walk_forward_results.csv`.
+The historical data comes from a limited source and ends in 2019. This is a one-week-ahead demonstration conditioned on observed history; it does not forecast 2026 demand or demonstrate production-grade monitoring, authentication, automated CI/CD, or clinical suitability. The API is publicly accessible as a portfolio demo. The saved model is generated from the repository's data at deployment/startup rather than retrieved from a production model registry.
 
-**Important:** This is one-week-ahead backtesting using actual past observations at each prediction point, not a recursive 4–12-week forecast. Results have not yet been executed and verified; run the script before citing any new scores. The original deployed dashboard and its existing results remain unchanged.
+## More portfolio projects
+
+- [Amazon Fine Food Reviews — Sentiment Analysis AI](https://github.com/youssefattafi/Amazon-Fine-Food-Reviews-Analysis) · [Live NLP demo](https://amazon-review-sentiment-ai.streamlit.app/)
+- [Hotel Booking Data Analysis](https://github.com/youssefattafi/Hotel-Booking-Data-Analysis) · [Live analytics dashboard](https://hotel-booking-analytics-ai.streamlit.app/)
+
+**Author:** [Youssef Douieb El Attafi](https://github.com/youssefattafi)
