@@ -26,3 +26,34 @@ if category == "N02BE" and pred_path.exists():
     st.subheader("N02BE: held-out actual vs model predictions")
     st.line_chart(pred)
 st.info("Chronological holdout evaluation using prior observed weeks; this is one-step-ahead backtesting.")
+
+
+st.divider()
+st.subheader("AI Forecast — one week ahead")
+st.caption("Uses the saved Random Forest through a FastAPI service. This is a historical demonstration, not a current-demand forecast.")
+import requests
+import os
+
+api_url = os.getenv("PHARMA_API_URL", "").strip().rstrip("/")
+if not api_url:
+    st.info("Forecast API not connected yet. Deploy the FastAPI service and set PHARMA_API_URL in Streamlit app secrets/environment to enable live predictions.")
+else:
+    if st.button("Generate next-week forecast", type="primary"):
+        categories = ["M01AB", "M01AE", "N02BA", "N02BE", "N05B", "N05C", "R03", "R06"]
+        history_df = df.sort_values("datum").tail(12)
+        payload = {"history": [
+            {"date": r["datum"].strftime("%Y-%m-%d"),
+             "quantities": {c: float(r[c]) for c in categories}}
+            for _, r in history_df.iterrows()
+        ]}
+        try:
+            response = requests.post(f"{api_url}/predict", json=payload, timeout=25)
+            response.raise_for_status()
+            forecast = response.json()
+            st.success(f"Forecast for week of {forecast['forecast_week']} · Model v{forecast['model_version']}")
+            predictions = forecast["predicted_weekly_quantities"]
+            st.metric(f"{category} predicted weekly quantity", f"{predictions[category]:,.2f}")
+            st.bar_chart(pd.Series(predictions, name="Predicted quantity"))
+            st.caption(forecast.get("note", "Experimental forecast."))
+        except (requests.RequestException, ValueError, KeyError) as exc:
+            st.error(f"Forecast service unavailable or returned an unexpected response: {exc}")
